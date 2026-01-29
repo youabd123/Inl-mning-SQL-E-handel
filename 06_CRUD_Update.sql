@@ -1,22 +1,22 @@
--- 06_CRUD_Update.sql
+-- 06_UpdateData.sql
 USE MiniShopDB;
 GO
 
--- Information about customers
+-- 1. Uppdatera telefonnummer för en kund
 UPDATE Customers
-SET Phone = '0705555555'
+SET Phone = '0709999999'
 WHERE Email = 'jonas.berg@email.com';
 GO
 
--- Costumers orders
+-- 2. Uppdatera status på en order
 UPDATE Orders
 SET Status = 'Paid',
-    OrderDate = SYSDATETIME()
-WHERE OrderId = 3;
+    OrderDate = GETDATE()
+WHERE OrderId = 1; -- Ändrade till 1 så vi är säkra på att den finns
 GO
 
--- Details about orders
+-- 3. Ändra antal för en specifik produkt i en order
 UPDATE OrderItems
-SET Quantity = 3
-WHERE OrderId = 3 AND ProductId = 2;
+SET Quantity = 5
+WHERE OrderId = 1 AND ProductId = 2;
 GO

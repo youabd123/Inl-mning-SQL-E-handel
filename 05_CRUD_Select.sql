@@ -1,36 +1,17 @@
--- 05_CRUD_Select.sql
+-- 05_Queries.sql
 USE MiniShopDB;
 GO
 
--- Enkel SELECT
+-- 1. Se alla produkter och priser
+SELECT ProductName, Price FROM Products;
 
-SELECT *
-FROM Customers;
-GO
+-- 2. Se alla kunder
+SELECT FullName, Email FROM Customers;
 
--- Filtrerad SELECT
-SELECT *
+-- 3. Se vem som har gjort vilken order (Viktigaste frågan!)
+SELECT 
+    Orders.OrderId, 
+    Customers.FullName, 
+    Orders.OrderDate 
 FROM Orders
-WHERE Status = 'Created';
-GO
-
--- SELECT med JOIN (Orders + Customers)
-SELECT
-    o.OrderId,
-    o.OrderDate,
-    o.Status,
-    c.FullName,
-    c.Email
-FROM Orders o
-JOIN Customers c ON o.CustomerId = c.CustomerId;
-GO
-
--- Join OrderItems with Products to get product details
-SELECT
-    oi.OrderId,
-    p.ProductName,
-    oi.Quantity,
-    oi.UnitPrice
-FROM OrderItems oi
-JOIN Products p ON oi.ProductId = p.ProductId;
-GO
+JOIN Customers ON Orders.CustomerId = Customers.CustomerId;

@@ -1,79 +1,53 @@
--- 02_CreateTables.sql
-
 USE MiniShopDB;
 GO
 
--- Customers
+-- 1. Kunder
 CREATE TABLE Customers (
-    CustomerId INT IDENTITY(1,1) PRIMARY KEY,
-    FullName NVARCHAR(120) NOT NULL,
-    Email NVARCHAR(255) NOT NULL UNIQUE,
-    Phone NVARCHAR(30),
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    CustomerId INT IDENTITY PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(100) NOT NULL UNIQUE,
+    Phone NVARCHAR(20),
+    CreatedAt DATETIME DEFAULT GETDATE()
 );
-GO
 
--- Categories
+-- 2. Kategorier
 CREATE TABLE Categories (
-    CategoryId INT IDENTITY(1,1) PRIMARY KEY,
-    CategoryName NVARCHAR(80) NOT NULL UNIQUE
+    CategoryId INT IDENTITY PRIMARY KEY,
+    CategoryName NVARCHAR(50) NOT NULL UNIQUE
 );
-GO
--- Products
+
+-- 3. Produkter
 CREATE TABLE Products (
-    ProductId INT IDENTITY(1,1) PRIMARY KEY,
-    CategoryId INT NOT NULL,
-    SKU NVARCHAR(40) NOT NULL UNIQUE,
-    ProductName NVARCHAR(120) NOT NULL,
+    ProductId INT IDENTITY PRIMARY KEY,
+    ProductName NVARCHAR(100) NOT NULL,
     Price DECIMAL(10,2) NOT NULL CHECK (Price >= 0),
-    IsActive BIT NOT NULL DEFAULT 1,
-
-    CONSTRAINT FK_Products_Categories
-        FOREIGN KEY (CategoryId)
-        REFERENCES Categories(CategoryId)
+    CategoryId INT REFERENCES Categories(CategoryId), -- Enkel FK-koppling
+    IsActive BIT DEFAULT 1
 );
-GO
--- Orders
+
+-- 4. Ordrar
 CREATE TABLE Orders (
-    OrderId INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerId INT NOT NULL,
-    OrderDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    Status NVARCHAR(20) NOT NULL CHECK (Status IN ('Created','Paid','Shipped','Cancelled')),
-    ShippingAddress NVARCHAR(200) NOT NULL,
-
-    CONSTRAINT FK_Orders_Customers
-        FOREIGN KEY (CustomerId)
-        REFERENCES Customers(CustomerId)
+    OrderId INT IDENTITY PRIMARY KEY,
+    OrderDate DATETIME DEFAULT GETDATE(),
+    Status NVARCHAR(20) DEFAULT 'Pending',
+    ShippingAddress NVARCHAR(200),
+    CustomerId INT REFERENCES Customers(CustomerId) -- Enkel FK-koppling
 );
-GO
--- OrderItems (M:N)
+
+-- 5. Orderdetaljer
 CREATE TABLE OrderItems (
-    OrderId INT NOT NULL,
-    ProductId INT NOT NULL,
+    OrderId INT REFERENCES Orders(OrderId),
+    ProductId INT REFERENCES Products(ProductId),
     Quantity INT NOT NULL CHECK (Quantity > 0),
-    UnitPrice DECIMAL(10,2) NOT NULL CHECK (UnitPrice >= 0),
-
-    CONSTRAINT PK_OrderItems PRIMARY KEY (OrderId, ProductId),
-
-    CONSTRAINT FK_OrderItems_Orders
-        FOREIGN KEY (OrderId)
-        REFERENCES Orders(OrderId),
-
-    CONSTRAINT FK_OrderItems_Products
-        FOREIGN KEY (ProductId)
-        REFERENCES Products(ProductId)
+    UnitPrice DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (OrderId, ProductId) -- Sätter ihop båda till en PK
 );
-GO
--- Tabell fÃ¶r att hÃ¥lla koll pÃ¥ betalningar
+
+-- 6. Betalningar
 CREATE TABLE Payments (
-    PaymentId INT IDENTITY(1,1) PRIMARY KEY,
-    OrderId INT NOT NULL UNIQUE,
-    Amount DECIMAL(10,2) NOT NULL CHECK (Amount >= 0),
-    PaymentMethod NVARCHAR(20) NOT NULL CHECK (PaymentMethod IN ('card','swish','invoice')),
-    PaidAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-
-    CONSTRAINT FK_Payments_Orders
-        FOREIGN KEY (OrderId)
-        REFERENCES Orders(OrderId)
+    PaymentId INT IDENTITY PRIMARY KEY,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentMethod NVARCHAR(20), -- Ex: 'Kort', 'Swish'
+    PaidAt DATETIME DEFAULT GETDATE(),
+    OrderId INT UNIQUE REFERENCES Orders(OrderId)
 );
-GO
